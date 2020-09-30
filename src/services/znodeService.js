@@ -125,12 +125,12 @@ async function processZnodes() {
     });
     setTimeout(() => {
       processZnodes();
-    }, 1 * 60 * 1000);
+    }, 15 * 60 * 1000);
   } catch (e) {
     log.error(e);
     setTimeout(() => {
       processZnodes();
-    }, 1 * 60 * 1000);
+    }, 15 * 60 * 1000);
   }
 }
 
@@ -167,7 +167,9 @@ async function getAllZnodeInformation(req, res) {
     const singlequery = {
       ip,
     };
-    queryForIps.push(singlequery);
+    if (ip.length > 5) {
+      queryForIps.push(singlequery);
+    }
   });
   const query = {
     $or: queryForIps,
@@ -203,7 +205,9 @@ async function getAllZnodeGeolocation(req, res) {
     const singlequery = {
       ip,
     };
-    queryForIps.push(singlequery);
+    if (ip.length > 5) {
+      queryForIps.push(singlequery);
+    }
   });
   const query = {
     $or: queryForIps,
@@ -248,7 +252,9 @@ async function getAllZnodeGeolocationNow(req, res) {
     const singlequery = {
       ip,
     };
-    queryForIps.push(singlequery);
+    if (ip.length > 5) {
+      queryForIps.push(singlequery);
+    }
   });
   const query = {
     $or: queryForIps,
@@ -277,6 +283,10 @@ async function start() {
       log.error(error);
       throw error;
     });
+    const database = db.db(config.database.local.database);
+    database.collection(znodecollection).createIndex({ ip: 1 }, { name: 'query for getting list of Znode data associated to IP address' });
+    database.collection(znodecollection).createIndex({ ip: 1, roundTime: 1 }, { name: 'query for getting list of Znode data associated to IP address since some roundTime' });
+    database.collection(znodecollection).createIndex({ roundTime: 1 }, { name: 'query for getting list of Znode data that were added in specific roundTime' });
     log.info('Initiating Znode API services...');
     // begin znodes processing;
     processZnodes();
@@ -285,7 +295,7 @@ async function start() {
     log.error(e);
     setTimeout(() => {
       start();
-    }, 5 * 30 * 1000);
+    }, 15 * 30 * 1000);
   }
 }
 module.exports = {
