@@ -12,12 +12,6 @@ module.exports = (app) => {
     znodeService.getAllZnodeInformation(req, res);
   });
   app.get('/znodelocations', cache('5 minutes'), (req, res) => {
-    znodeService.getAllZnodeGeolocation(req, res);
-  });
-  app.get('/availabletimes', cache('5 minutes'), (req, res) => {
-    znodeService.getCompletedRoundsTimestamps(req, res);
-  });
-  app.get('/znodelocationsnow', cache('5 minutes'), (req, res) => {
     znodeService.getAllZnodeGeolocationNow(req, res);
   });
 };

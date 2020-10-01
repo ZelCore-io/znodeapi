@@ -11,7 +11,6 @@ const axiosConfig = {
 let db = null;
 const geocollection = config.database.local.collections.geolocation;
 const znodecollection = config.database.local.collections.znodes;
-const completedRoundsCollection = config.database.local.collections.completedRounds;
 
 let currentZnodeIps = [];
 
@@ -102,10 +101,11 @@ async function processZnodes() {
           curZnode.geolocation = geoRes;
         }
       }
-      curZnode.roundTime = currentRoundTime;
-      const curTime = new Date().getTime();
-      curZnode.dataCollectedAt = curTime;
-      await serviceHelper.insertOneToDatabase(database, znodecollection, curZnode).catch((error) => {
+      const update = { $set: curZnode };
+      const options = {
+        upsert: true,
+      };
+      await serviceHelper.updateOneInDatabase(database, znodecollection, query, update, options).catch((error) => {
         log.error(error);
       });
       if ((i + 1) % 25 === 0) {
@@ -117,12 +117,6 @@ async function processZnodes() {
       }
     }
     log.info(`Processing of ${currentRoundTime} finished.`);
-    const crt = {
-      timestamp: currentRoundTime,
-    };
-    await serviceHelper.insertOneToDatabase(database, completedRoundsCollection, crt).catch((error) => {
-      log.error(error);
-    });
     setTimeout(() => {
       processZnodes();
     }, 15 * 60 * 1000);
@@ -154,14 +148,6 @@ async function getAllGeolocation(req, res) {
 
 async function getAllZnodeInformation(req, res) {
   const database = db.db(config.database.local.database);
-  const q = {};
-  const p = {};
-  const lastRound = await serviceHelper.findOneInDatabaseReverse(database, completedRoundsCollection, q, p).catch((error) => {
-    const errMessage = serviceHelper.createErrorMessage(error.message, error.name, error.code);
-    res.json(errMessage);
-    log.error(error);
-  });
-  const lastCompletedRound = lastRound ? lastRound.timestamp : 0;
   const queryForIps = [];
   currentZnodeIps.forEach((ip) => {
     const singlequery = {
@@ -173,7 +159,6 @@ async function getAllZnodeInformation(req, res) {
   });
   const query = {
     $or: queryForIps,
-    roundTime: lastCompletedRound,
   };
   const projection = {
     projection: {
@@ -190,16 +175,8 @@ async function getAllZnodeInformation(req, res) {
   return res.json(resMessage);
 }
 
-async function getAllZnodeGeolocation(req, res) {
+async function getAllZnodeGeolocationNow(req, res) {
   const database = db.db(config.database.local.database);
-  const q = {};
-  const p = {};
-  const lastRound = await serviceHelper.findOneInDatabaseReverse(database, completedRoundsCollection, q, p).catch((error) => {
-    const errMessage = serviceHelper.createErrorMessage(error.message, error.name, error.code);
-    res.json(errMessage);
-    log.error(error);
-  });
-  const lastCompletedRound = lastRound ? lastRound.timestamp : 0;
   const queryForIps = [];
   currentZnodeIps.forEach((ip) => {
     const singlequery = {
@@ -211,7 +188,6 @@ async function getAllZnodeGeolocation(req, res) {
   });
   const query = {
     $or: queryForIps,
-    roundTime: lastCompletedRound,
   };
   const projection = {
     projection: {
@@ -226,53 +202,7 @@ async function getAllZnodeGeolocation(req, res) {
     log.error(error);
   });
   const bresults = results.map((x) => x.geolocation);
-  const resMessage = serviceHelper.createDataMessage(bresults);
-  return res.json(resMessage);
-}
-
-async function getCompletedRoundsTimestamps(req, res) {
-  const database = db.db(config.database.local.database);
-  const q = {};
-  const p = {};
-  const completedRounds = await serviceHelper.findInDatabase(database, completedRoundsCollection, q, p).catch((error) => {
-    const errMessage = serviceHelper.createErrorMessage(error.message, error.name, error.code);
-    res.json(errMessage);
-    log.error(error);
-  });
-  const bresults = completedRounds.map((x) => x.timestamp);
-  const resMessage = serviceHelper.createDataMessage(bresults);
-  return res.json(resMessage);
-}
-
-async function getAllZnodeGeolocationNow(req, res) {
-  const database = db.db(config.database.local.database);
-  const queryForIps = [];
-  const znodeIpsNow = await getZnodeIPs();
-  znodeIpsNow.forEach((ip) => {
-    const singlequery = {
-      ip,
-    };
-    if (ip.length > 5) {
-      queryForIps.push(singlequery);
-    }
-  });
-  const query = {
-    $or: queryForIps,
-  };
-  const projection = {
-    projection: {
-      _id: 0,
-      geolocation: 1,
-    },
-  };
-  // return latest znode round
-  const results = await serviceHelper.findInDatabase(database, znodecollection, query, projection).catch((error) => {
-    const errMessage = serviceHelper.createErrorMessage(error.message, error.name, error.code);
-    res.json(errMessage);
-    log.error(error);
-  });
-  const bresults = results.map((x) => x.geolocation);
-  const cresults = [...new Set(bresults)];
+  const cresults = bresults.filter((v, i, a) => a.findIndex((t) => (t.ip === v.ip)) === i);
   const resMessage = serviceHelper.createDataMessage(cresults);
   return res.json(resMessage);
 }
@@ -285,8 +215,6 @@ async function start() {
     });
     const database = db.db(config.database.local.database);
     database.collection(znodecollection).createIndex({ ip: 1 }, { name: 'query for getting list of Znode data associated to IP address' });
-    database.collection(znodecollection).createIndex({ ip: 1, roundTime: 1 }, { name: 'query for getting list of Znode data associated to IP address since some roundTime' });
-    database.collection(znodecollection).createIndex({ roundTime: 1 }, { name: 'query for getting list of Znode data that were added in specific roundTime' });
     log.info('Initiating Znode API services...');
     // begin znodes processing;
     processZnodes();
@@ -303,7 +231,5 @@ module.exports = {
   getZnodeIPs,
   getAllGeolocation,
   getAllZnodeInformation,
-  getAllZnodeGeolocation,
-  getCompletedRoundsTimestamps,
   getAllZnodeGeolocationNow,
 };

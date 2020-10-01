@@ -10,7 +10,7 @@ module.exports = {
       database: 'znodesapi',
       collections: {
         // Array of round of znode explorer call + geolocation.
-        znodes: 'znodes',
+        znodes: 'znodes3',
         // geolocations of ip addresses belonging to znode instances
         geolocation: 'geolocation',
         // timestamp of completed full rounds
