@@ -1,6 +1,6 @@
 {
   "name": "znodeapi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Znode API features information about Zcoin masternode network",
   "repository": {
     "type": "git",
@@ -10,28 +10,26 @@
   "scripts": {
     "start": "nodemon index.js",
     "test": "echo 'No tests have been implemented' && exit 1",
-    "lint": "eslint src/"
+    "lint": "eslint ./",
+    "lint:fix": "eslint ./ --fix"
   },
   "author": "Tadeas Kmenta",
   "license": "MIT",
   "dependencies": {
-    "apicache": "^1.5.3",
-    "axios": "^0.20.0",
-    "config": "^3.3.2",
+    "apicache": "^1.6.3",
+    "axios": "^0.25.0",
+    "config": "^3.3.7",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "mongodb": "^3.6.2",
+    "express": "^4.17.2",
+    "mongodb": "^4.3.1",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.4",
-    "qs": "^6.9.4"
+    "nodemon": "^2.0.15",
+    "qs": "^6.10.3"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
-    "eslint": "^7.10.0",
-    "eslint-config-airbnb": "^18.2.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.21.2",
-    "eslint-plugin-react-hooks": "^4.1.2"
+    "eslint": "^8.7.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "power-assert": "^1.6.1"
   }
 }

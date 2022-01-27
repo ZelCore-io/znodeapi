@@ -157,9 +157,12 @@ async function getAllZnodeInformation(req, res) {
       queryForIps.push(singlequery);
     }
   });
-  const query = {
-    $or: queryForIps,
-  };
+
+  const query = {};
+  if (queryForIps.length > 0) {
+    query.$or = queryForIps;
+  }
+
   const projection = {
     projection: {
       _id: 0,
@@ -186,9 +189,12 @@ async function getAllZnodeGeolocationNow(req, res) {
       queryForIps.push(singlequery);
     }
   });
-  const query = {
-    $or: queryForIps,
-  };
+
+  const query = {};
+  if (queryForIps.length > 0) {
+    query.$or = queryForIps;
+  }
+
   const projection = {
     projection: {
       _id: 0,

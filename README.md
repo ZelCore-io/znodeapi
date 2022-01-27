@@ -4,7 +4,7 @@ Znode API constantly monitors Znode network and features api for about Znode net
 
 ## Requirements
 
-Requires node version 8.0 and above, mongodb
+Requires node version 12.0 and above, mongodb
 
 ## Installation
 
