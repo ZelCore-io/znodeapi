@@ -4,7 +4,7 @@
   "description": "Znode API features information about Zcoin masternode network",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zelcash/znodeapi.git"
+    "url": "git+https://github.com/zelcore-io/znodeapi.git"
   },
   "main": "index.js",
   "scripts": {
