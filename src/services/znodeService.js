@@ -208,7 +208,7 @@ async function getAllZnodeGeolocationNow(req, res) {
     log.error(error);
   });
   const bresults = results.map((x) => x.geolocation);
-  const cresults = bresults.filter((v, i, a) => a.findIndex((t) => (t.ip === v.ip)) === i);
+  const cresults = bresults.filter((v, i, a) => a.findIndex((t) => t && v &&(t.ip === v.ip)) === i);
   const resMessage = serviceHelper.createDataMessage(cresults);
   return res.json(resMessage);
 }
