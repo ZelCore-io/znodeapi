@@ -16,7 +16,7 @@ let currentZnodeIps = [];
 
 async function getZnodeList() {
   try {
-    const znodeList = await axios.get(`${config.explorer}/api/znodes/listznodesarray`, axiosConfig);
+    const znodeList = await axios.get(`${config.explorer}/api/masternode/listmasternodesarray`, axiosConfig);
     return znodeList.data.result || [];
   } catch (e) {
     log.error(e);
